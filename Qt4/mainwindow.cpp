@@ -64,6 +64,7 @@ MainWindow::MainWindow(QWidget *parent)
     labelCity->setAlignment(Qt::AlignCenter);
     layout->addWidget(labelCity,0,0);
     labelTemp = new QLabel("温度\n?");
+    labelTemp->setStyleSheet("font-size:40px");
     labelTemp->setAlignment(Qt::AlignCenter);
     layout->addWidget(labelTemp,0,1);
     labelSD = new QLabel("湿度\n?");

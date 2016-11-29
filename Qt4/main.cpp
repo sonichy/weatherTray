@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
     QApplication::setQuitOnLastWindowClosed(false);
     MainWindow *window=new MainWindow;
     window->setWindowTitle("中国天气预报");
-    window->setFixedSize(520,220);
+    window->setFixedSize(600,240);
 
     // 水平垂直居中
     QDesktopWidget* desktop = QApplication::desktop();
