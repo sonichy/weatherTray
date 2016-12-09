@@ -23,8 +23,8 @@ int main(int argc, char *argv[])
     window->setFixedSize(600,240);
 
     // 水平垂直居中
-    QDesktopWidget* desktop = QApplication::desktop();
-    window->move((desktop->width() - window->width())/2, (desktop->height() - window->height())/2);
+    //QDesktopWidget* desktop = QApplication::desktop();
+    //window->move((desktop->width() - window->width())/2, (desktop->height() - window->height())/2);
 
     // 移除最小化
     window->setWindowFlags((window->windowFlags() | Qt::CustomizeWindowHint) & ~Qt::WindowMinimizeButtonHint );
