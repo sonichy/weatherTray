@@ -121,11 +121,12 @@ void MainWindow::closeEvent(QCloseEvent *event)//此函数在QWidget关闭时执
 
 void MainWindow::windowForecast(){
     QDesktopWidget* desktop = QApplication::desktop();
-    this->move((desktop->width() - this->width())/2, (desktop->height() - this->height())/2);
     this->hide();
+    this->move((desktop->width() - this->width())/2, (desktop->height() - this->height())/2);
     this->show();
     this->setWindowState(Qt::WindowActive);
     this->activateWindow();
+
 }
 
 void MainWindow::windowAbout(){    

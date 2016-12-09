@@ -23,9 +23,9 @@ QSystemTrayIcon *systray;
 MainWindow *window;
 QDesktopWidget* desktop;
 
-void windowForecast(){
-    window->move((desktop->width() - window->width())/2, (desktop->height() - window->height())/2);
+void windowForecast(){    
     window->hide();
+    window->move((desktop->width() - window->width())/2, (desktop->height() - window->height())/2);
     window->show();
     //this->setWindowState(Qt::WindowActive);
     //this->activateWindow();    
