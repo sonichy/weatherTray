@@ -1,5 +1,3 @@
-// 获取网页源码写入文件: http://blog.csdn.net/small_qch/article/details/7200271
-// JOSN解析: http://blog.sina.com.cn/s/blog_a6fb6cc90101gnxm.html
 #include "mainwindow.h"
 #include <QDesktopWidget>
 #include <QApplication>
@@ -15,13 +13,22 @@
 #include <QHBoxLayout>
 #include <QSplitter>
 #include <QMessageBox>
+#include <QColor>
+#include <QPalette>
+#include <QDebug>
+
 QString city="",cityId="",swn="",sw1="";
-QAction *forecastAction,*refreshAction,*aboutAction,*quitAction;
+QAction *action_forecast,*action_refresh,*action_background,*action_about,*action_quit;
 QLabel *labelTemp,*labelCity,*labelSD,*labelWind,*labelPM,*labelAQI,*labelRT,*labelDate[7],*labelWImg[7],*labelWeather[7];
 QGridLayout *layout;
 QSystemTrayIcon *systray;
 MainWindow *window;
 QDesktopWidget* desktop;
+
+void changeBackground(bool on){
+    qDebug() << on;
+    window->setAttribute(Qt::WA_TranslucentBackground,on);
+}
 
 void windowForecast(){    
     window->hide();
@@ -32,7 +39,7 @@ void windowForecast(){
 }
 
 void windowAbout(){
-    QMessageBox aboutMB(QMessageBox::NoIcon, "关于", "中国天气预报 2.1\n一款基于Qt的天气预报程序。\n作者：黄颖\nE-mail: sonichy@163.com\n主页：sonichy.96.lt\n致谢：\nsina.com\nweidu.com\nlinux028@deepin.org\n\n2.1 (2016-12-09)\n1.窗体始终居中。\n\n2.0 (2016-11-21)\n1.使用QScript库代替QJsonDocument解析JSON，开发出兼容Qt4的版本。\n2.单击图标弹出实时天气消息，弥补某些系统不支持鼠标悬浮信息的不足。\n3.由于QScriptValueIterator.value().property解析不了某个JSON，使用QScriptValue.property.property代替。\n4.托盘右键增加一个刷新菜单。\n\n1.0 (2016-11-17)\n1.动态修改天气栏托盘图标，鼠标悬浮显示实时天气，点击菜单弹出窗口显示7天天气预报。\n2.每30分钟自动刷新一次。\n3.窗体透明。");
+    QMessageBox aboutMB(QMessageBox::NoIcon, "关于", "中国天气预报 2.2\n一款基于Qt的天气预报程序。\n作者：黄颖\nE-mail: sonichy@163.com\n主页：sonichy.96.lt\n致谢：\nsina.com\nweidu.com\nlinux028@deepin.org\n\n参考：\n获取网页源码写入文件: http://blog.csdn.net/small_qch/article/details/7200271\nJOSN解析: http://blog.sina.com.cn/s/blog_a6fb6cc90101gnxm.html\n\n2.2 (2017-01-23)\n1.使用本地图标代替边缘有白色的网络图标，可用于暗色背景了！\n\n2.1 (2016-12-09)\n1.窗体始终居中。\n\n2.0 (2016-11-21)\n1.使用QScript库代替QJsonDocument解析JSON，开发出兼容Qt4的版本。\n2.单击图标弹出实时天气消息，弥补某些系统不支持鼠标悬浮信息的不足。\n3.由于QScriptValueIterator.value().property解析不了某个JSON，使用QScriptValue.property.property代替。\n4.托盘右键增加一个刷新菜单。\n\n1.0 (2016-11-17)\n1.动态修改天气栏托盘图标，鼠标悬浮显示实时天气，点击菜单弹出窗口显示7天天气预报。\n2.每30分钟自动刷新一次。\n3.窗体透明。");
     aboutMB.setIconPixmap(QPixmap(":/icon.ico"));
     aboutMB.exec();
 }
@@ -48,6 +55,7 @@ void iconIsActived(QSystemTrayIcon::ActivationReason reason)
         break;
     }
     case QSystemTrayIcon::DoubleClick:
+        //windowForecast();
         break;
     default:
         break;
@@ -116,29 +124,20 @@ void getWeather(){
                 it = obj.find("weatherinfo");
                 QJsonObject weatherinfoObj = it.value().toObject();
                 sw1 = weatherinfoObj.value("weather1").toString();
-                URLSTR="http://m.weather.com.cn/weather_img/"+ QString::number(weatherinfoObj.value("img1").toInt()) + ".gif";
-                qDebug() << URLSTR;
-                url.setUrl(URLSTR);
-                reply = manager.get(QNetworkRequest(url));
-                QObject::connect(reply, SIGNAL(finished()), &loop, SLOT(quit()));
-                loop.exec();
-                QPixmap pixmap;
-                pixmap.loadFromData(reply->readAll());
-                systray->setIcon(QIcon(pixmap));                
+                QImage image;
+                URLSTR="images/"+ QString::number(weatherinfoObj.value("img1").toInt()) + ".png";
+                image.load(URLSTR);
+                systray->setIcon(QIcon(QPixmap::fromImage(image)));
 
                 QDateTime date = QDateTime::fromString(weatherinfoObj.value("date_y").toString(), "yyyy年M月d");                
                 for(int i=1;i<8;i++){
                     labelDate[i-1]->setText(date.addDays(i-1).toString("M-d")+"\n"+date.addDays(i-1).toString("dddd"));
                     labelDate[i-1]->setAlignment(Qt::AlignCenter);
-                    URLSTR="http://m.weather.com.cn/weather_img/"+ QString::number(weatherinfoObj.value("img"+QString::number(2*i-1)).toInt()) + ".gif";
-                    url.setUrl(URLSTR);
-                    reply = manager.get(QNetworkRequest(url));
-                    QObject::connect(reply, SIGNAL(finished()), &loop, SLOT(quit()));
-                    loop.exec();
-                    QPixmap pixmap;
-                    pixmap.loadFromData(reply->readAll());
-                    labelWImg[i-1]->setPixmap(pixmap);
+                    URLSTR="images/"+ QString::number(weatherinfoObj.value("img"+QString::number(2*i-1)).toInt()) + ".png";
+                    image.load(URLSTR);
+                    labelWImg[i-1]->setPixmap(QPixmap::fromImage(image.scaled(50,50)));
                     labelWImg[i-1]->setAlignment(Qt::AlignCenter);
+
                     labelWeather[i-1]->setText(weatherinfoObj.value("weather"+QString::number(i)).toString()+"\n"+weatherinfoObj.value("temp"+QString::number(i)).toString()+"\n"+weatherinfoObj.value("wind"+QString::number(i)).toString());
                     labelWeather[i-1]->setAlignment(Qt::AlignCenter);
                 }
@@ -186,6 +185,11 @@ int main(int argc, char *argv[])
     window=new MainWindow;
     window->setWindowTitle("中国天气预报");
     window->setFixedSize(500,220);
+    //窗体颜色
+    //QPalette plt(window->palette());
+    //plt.setColor(QPalette::WindowText,Qt::white);
+    //plt.setColor(QPalette::Background,Qt::black);
+    //window->setPalette(plt);
 
     //水平垂直居中
     desktop = QApplication::desktop();
@@ -198,11 +202,11 @@ int main(int argc, char *argv[])
     // 不在任务栏显示
     window->setWindowFlags(Qt::Tool);
     // 隐藏标题栏
-    //window->setWindowFlags(Qt::FramelessWindowHint);
-    // 背景透明
-    //window->setAttribute(Qt::WA_TranslucentBackground, true);
+    //window->setWindowFlags(Qt::FramelessWindowHint);    
     // 窗体透明
-    window->setWindowOpacity(0.9);
+    window->setWindowOpacity(0.8);
+    //窗体背景完全透明
+    //window->setAttribute(Qt::WA_TranslucentBackground,true);
 
     layout = new QGridLayout;
     labelCity = new QLabel("城市");
@@ -249,30 +253,34 @@ int main(int argc, char *argv[])
     systray->setIcon(QIcon(":/icon.ico"));
     systray->setVisible(true);
     QMenu *traymenu=new QMenu();
-    forecastAction=new QAction("预报",traymenu);
+    action_forecast=new QAction("预报",traymenu);
     QStyle* style = QApplication::style();
     QIcon icon = style->standardIcon(QStyle::SP_ComputerIcon);
-    forecastAction->setIcon(icon);
-    refreshAction=new QAction("刷新",traymenu);
+    action_forecast->setIcon(icon);
+    action_refresh=new QAction("刷新",traymenu);
     icon = style->standardIcon(QStyle::SP_DriveNetIcon);
-    refreshAction->setIcon(icon);
-    aboutAction=new QAction("关于",traymenu);
+    action_refresh->setIcon(icon);
+    action_background=new QAction("背景透明",traymenu);
+    action_background->setCheckable(true);
+    action_about=new QAction("关于",traymenu);
     icon = style->standardIcon(QStyle::SP_MessageBoxInformation);
-    aboutAction->setIcon(icon);
-    quitAction=new QAction("退出",traymenu);
+    action_about->setIcon(icon);
+    action_quit=new QAction("退出",traymenu);
     icon = style->standardIcon(QStyle::SP_DialogCloseButton);
-    quitAction->setIcon(icon);
-    traymenu->addAction(forecastAction);
-    traymenu->addAction(refreshAction);
-    traymenu->addAction(aboutAction);
-    traymenu->addAction(quitAction);
+    action_quit->setIcon(icon);
+    traymenu->addAction(action_forecast);
+    traymenu->addAction(action_refresh);
+    traymenu->addAction(action_background);
+    traymenu->addAction(action_about);
+    traymenu->addAction(action_quit);
     systray->setContextMenu(traymenu);
     systray->show();
     QObject::connect(systray, &QSystemTrayIcon::activated, &iconIsActived);
-    QObject::connect(forecastAction, &QAction::triggered, &windowForecast);
-    QObject::connect(refreshAction, &QAction::triggered, &getWeather);
-    QObject::connect(aboutAction, &QAction::triggered, &windowAbout);
-    QObject::connect(quitAction, SIGNAL(triggered()), &app, SLOT(quit()));
+    QObject::connect(action_forecast, &QAction::triggered, &windowForecast);
+    QObject::connect(action_refresh, &QAction::triggered, &getWeather);
+    QObject::connect(action_background, &QAction::triggered, &changeBackground);
+    QObject::connect(action_about, &QAction::triggered, &windowAbout);
+    QObject::connect(action_quit, SIGNAL(triggered()), &app, SLOT(quit()));
 
     QTimer *timer=new QTimer();
     timer->setInterval(1800000);

@@ -17,6 +17,7 @@ private slots:
     void windowForecast();
     void getWeather();
     void iconIsActived(QSystemTrayIcon::ActivationReason);
+    void changeBackground(bool);
 };
 
 #endif // MAINWINDOW_H

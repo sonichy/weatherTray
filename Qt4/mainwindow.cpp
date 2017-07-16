@@ -21,7 +21,7 @@ QString city="",cityId="",swn="",sw1="";
 QLabel *labelTemp,*labelCity,*labelSD,*labelWind,*labelPM,*labelAQI,*labelRT,*labelDate[7],*labelWImg[7],*labelWeather[7];
 //QGridLayout *layout;
 QSystemTrayIcon *systray;
-QAction *forecastAction,*refreshAction,*aboutAction,*quitAction;
+QAction *forecastAction,*refreshAction,*backgroundAction,*aboutAction,*quitAction;
 
 MainWindow::MainWindow(QWidget *parent)
       : QMainWindow(parent)
@@ -39,6 +39,8 @@ MainWindow::MainWindow(QWidget *parent)
     refreshAction=new QAction("刷新",traymenu);
     icon = style->standardIcon(QStyle::SP_DriveNetIcon);
     refreshAction->setIcon(icon);
+    backgroundAction=new QAction("背景透明",traymenu);
+    backgroundAction->setCheckable(true);
     aboutAction=new QAction("关于",traymenu);
     icon = style->standardIcon(QStyle::SP_MessageBoxInformation);
     aboutAction->setIcon(icon);
@@ -47,15 +49,17 @@ MainWindow::MainWindow(QWidget *parent)
     quitAction->setIcon(icon);
     traymenu->addAction(forecastAction);
     traymenu->addAction(refreshAction);
+    traymenu->addAction(backgroundAction);
     traymenu->addAction(aboutAction);
     traymenu->addAction(quitAction);
     systray->setContextMenu(traymenu);
     systray->show();
-    QObject::connect(systray , SIGNAL(activated(QSystemTrayIcon::ActivationReason)), this, SLOT(iconIsActived(QSystemTrayIcon::ActivationReason)));
-    QObject::connect(forecastAction, SIGNAL(triggered()),this, SLOT(windowForecast()));
-    QObject::connect(refreshAction, SIGNAL(triggered()),this, SLOT(getWeather()));
-    QObject::connect(aboutAction, SIGNAL(triggered()), this, SLOT(windowAbout()));    
-    QObject::connect(quitAction, SIGNAL(triggered()), qApp, SLOT(quit()));
+    connect(systray , SIGNAL(activated(QSystemTrayIcon::ActivationReason)), this, SLOT(iconIsActived(QSystemTrayIcon::ActivationReason)));
+    connect(forecastAction, SIGNAL(triggered()),this, SLOT(windowForecast()));
+    connect(refreshAction, SIGNAL(triggered()),this, SLOT(getWeather()));
+    connect(backgroundAction, SIGNAL(toggled(bool)),this, SLOT(changeBackground(bool)));
+    connect(aboutAction, SIGNAL(triggered()), this, SLOT(windowAbout()));
+    connect(quitAction, SIGNAL(triggered()), qApp, SLOT(quit()));
 
     // 报错：Attempting to set QLayout "" on MainWindow "", which already has a layout
     QWidget *widget=new QWidget;
@@ -109,14 +113,19 @@ MainWindow::MainWindow(QWidget *parent)
 
 //MainWindow::~MainWindow()
 //{
-
 //}
 
 void MainWindow::closeEvent(QCloseEvent *event)//此函数在QWidget关闭时执行
 {
     this->hide();
     //不退出App
-    event->ignore(); // 报错：invalid use of incomplete type 'class QCloseEvent'，头文件里没有：#include <QCloseEvent>
+    event->ignore();
+}
+
+
+void MainWindow::changeBackground(bool on){
+    qDebug() << on;
+    setAttribute(Qt::WA_TranslucentBackground,on);
 }
 
 void MainWindow::windowForecast(){
@@ -163,7 +172,7 @@ void MainWindow::getWeather(){
     QNetworkReply *reply;
     reply = manager.get(QNetworkRequest(url));
     //请求结束并下载完成后，退出子事件循环
-    QObject::connect(reply, SIGNAL(finished()), &loop, SLOT(quit()));
+    connect(reply, SIGNAL(finished()), &loop, SLOT(quit()));
     //开启子事件循环
     loop.exec();
     QString codeContent = reply->readAll();
@@ -192,28 +201,42 @@ void MainWindow::getWeather(){
     qDebug() << codeContent;
     sc = engine.evaluate("value="+codeContent);    
     sw1 =sc.property("weatherinfo").property("weather1").toString();
+    /*
     URLSTR="http://m.weather.com.cn/weather_img/"+ QString::number(sc.property("weatherinfo").property("img1").toNumber()) + ".gif";
     qDebug() << URLSTR;
     url.setUrl(URLSTR);
     reply = manager.get(QNetworkRequest(url));
-    QObject::connect(reply, SIGNAL(finished()), &loop, SLOT(quit()));
+    connect(reply, SIGNAL(finished()), &loop, SLOT(quit()));
     loop.exec();
     QPixmap pixmap;
     pixmap.loadFromData(reply->readAll());
     systray->setIcon(QIcon(pixmap));
+    */
+    QImage image;
+    URLSTR="images/"+ QString::number(sc.property("weatherinfo").property("img1").toNumber()) + ".png";
+    image.load(URLSTR);
+    systray->setIcon(QIcon(QPixmap::fromImage(image)));
+
     QDateTime date = QDateTime::fromString(sc.property("weatherinfo").property("date_y").toString(), "yyyy年M月d");
     for(int i=1;i<8;i++){
         labelDate[i-1]->setText(date.addDays(i-1).toString("M-d")+"\n"+date.addDays(i-1).toString("dddd"));
         labelDate[i-1]->setAlignment(Qt::AlignCenter);
+        /*
         URLSTR="http://m.weather.com.cn/weather_img/"+ QString::number(sc.property("weatherinfo").property("img"+QString::number(2*i-1)).toNumber()) + ".gif";
         url.setUrl(URLSTR);
         reply = manager.get(QNetworkRequest(url));
         QObject::connect(reply, SIGNAL(finished()), &loop, SLOT(quit()));
-        loop.exec();
+        loop.exec();        
         QPixmap pixmap;
         pixmap.loadFromData(reply->readAll());
         labelWImg[i-1]->setPixmap(pixmap);
         labelWImg[i-1]->setAlignment(Qt::AlignCenter);
+        */
+        URLSTR="images/"+ QString::number(sc.property("weatherinfo").property("img"+QString::number(2*i-1)).toNumber()) + ".png";
+        image.load(URLSTR);
+        labelWImg[i-1]->setPixmap(QPixmap::fromImage(image.scaled(50,50)));
+        labelWImg[i-1]->setAlignment(Qt::AlignCenter);
+
         labelWeather[i-1]->setText(sc.property("weatherinfo").property("weather"+QString::number(i)).toString()+ "\n" + sc.property("weatherinfo").property("temp"+QString::number(i)).toString() + "\n" + sc.property("weatherinfo").property("wind"+QString::number(i)).toString());
         labelWeather[i-1]->setAlignment(Qt::AlignCenter);
     }
@@ -221,7 +244,7 @@ void MainWindow::getWeather(){
     URLSTR="http://hao.weidunewtab.com/myapp/weather/data/indexInTime.php?cityID="+cityId;
     url.setUrl(URLSTR);
     reply = manager.get(QNetworkRequest(url));
-    QObject::connect(reply, SIGNAL(finished()), &loop, SLOT(quit()));
+    connect(reply, SIGNAL(finished()), &loop, SLOT(quit()));
     loop.exec();
     codeContent = reply->readAll();
     qDebug() << URLSTR;

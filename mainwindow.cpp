@@ -9,7 +9,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 void MainWindow::closeEvent(QCloseEvent *event)//此函数在QWidget关闭时执行
 {
-    this->hide();
+    hide();
     //不退出App
     event->ignore(); // 报错：invalid use of incomplete type 'class QCloseEvent'，头文件里没有：#include <QCloseEvent>
 }
