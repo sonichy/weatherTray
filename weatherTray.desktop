@@ -1,10 +1,10 @@
 [Desktop Entry]
-Encoding=UTF-8
-Version=1.0
-Type=Application
+Name=weatherTray
+Comment=
+Exec=/media/sonichy/job/HY/Linux/Qt/weatherTray/weatherTray
+Icon=/media/sonichy/job/HY/Linux/Qt/weatherTray/icon.png
+Path=/media/sonichy/job/HY/Linux/Qt/weatherTray
 Terminal=false
-Exec=/media/administrator/工作/HY/Linux/Qt/weatherTray/weatherTray
-Icon=/media/administrator/工作/HY/Linux/Qt/weatherTray/icon.ico
-Path=/media/administrator/工作/HY/Linux/Qt/weatherTray
-Categories=Application;
-Name[zh_CN]=托盘天气
+Type=Application
+MimeType=
+Categories=
