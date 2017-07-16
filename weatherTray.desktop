@@ -1,5 +1,5 @@
 [Desktop Entry]
-Name=weatherTray
+Name=天气预报
 Comment=
 Exec=/media/sonichy/job/HY/Linux/Qt/weatherTray/weatherTray
 Icon=/media/sonichy/job/HY/Linux/Qt/weatherTray/icon.png
