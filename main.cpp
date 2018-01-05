@@ -28,14 +28,13 @@ QDesktopWidget* desktop;
 void changeBackground(bool on){
     qDebug() << on;
     window->setAttribute(Qt::WA_TranslucentBackground,on);
+    window->setAttribute(Qt::WA_NoSystemBackground,on);
 }
 
-void windowForecast(){    
-    window->hide();
+void windowForecast(){
     window->move((desktop->width() - window->width())/2, (desktop->height() - window->height())/2);
     window->show();
-    //this->setWindowState(Qt::WindowActive);
-    //this->activateWindow();    
+    window->raise();
 }
 
 void windowAbout(){
@@ -47,8 +46,7 @@ void windowAbout(){
 void iconIsActived(QSystemTrayIcon::ActivationReason reason)
 {
     //qDebug() << reason;
-    switch(reason)
-    {
+    switch(reason) {
     case QSystemTrayIcon::Trigger:
     {
         systray->showMessage("实时天气", swn, QSystemTrayIcon::MessageIcon::Information, 9000);
@@ -62,11 +60,12 @@ void iconIsActived(QSystemTrayIcon::ActivationReason reason)
     }
 }
 
-void getWeather(){
+void getWeather()
+{
     QDateTime currentDateTime = QDateTime::currentDateTime();
     qDebug() << "getWeather()" << currentDateTime;
-    QString URLSTR = "http://int.dpool.sina.com.cn/iplookup/iplookup.php?format=json";
-    QUrl url(URLSTR);
+    QString surl = "http://int.dpool.sina.com.cn/iplookup/iplookup.php?format=json";
+    QUrl url(surl);
     QNetworkAccessManager manager;
     QEventLoop loop;
     QNetworkReply *reply;
@@ -77,19 +76,15 @@ void getWeather(){
     //开启子事件循环
     loop.exec();
     QString codeContent = reply->readAll();
-    qDebug() << URLSTR + " -> " << codeContent;
+    qDebug() << surl + " -> " << codeContent;
     QJsonParseError json_error;
     QJsonDocument parse_doucment = QJsonDocument::fromJson(codeContent.toLatin1(), &json_error);
-    if(json_error.error == QJsonParseError::NoError)
-    {
-        if(parse_doucment.isObject())
-        {
+    if(json_error.error == QJsonParseError::NoError) {
+        if(parse_doucment.isObject()) {
             QJsonObject obj = parse_doucment.object();
-            if(obj.contains("city"))
-            {
+            if(obj.contains("city")) {
                 QJsonValue city_value = obj.take("city");
-                if(city_value.isString())
-                {
+                if(city_value.isString()) {
                     city = city_value.toString();
                     labelCity->setText(city);
                 }
@@ -97,44 +92,42 @@ void getWeather(){
         }
     }
 
-    URLSTR="http://hao.weidunewtab.com/tianqi/city.php?city="+city;
-    url.setUrl(URLSTR);
+    surl = "http://hao.weidunewtab.com/tianqi/city.php?city=" + city;
+    url.setUrl(surl);
     reply = manager.get(QNetworkRequest(url));
     QObject::connect(reply, SIGNAL(finished()), &loop, SLOT(quit()));
     loop.exec();
     cityId = reply->readAll();
-    qDebug() << URLSTR + " => " << cityId;
+    qDebug() << surl + " => " << cityId;
 
-    URLSTR="http://hao.weidunewtab.com/myapp/weather/data/index.php?cityID="+cityId;
-    url.setUrl(URLSTR);
+    surl = "http://hao.weidunewtab.com/myapp/weather/data/index.php?cityID=" + cityId;
+    url.setUrl(surl);
     reply = manager.get(QNetworkRequest(url));
     QObject::connect(reply, SIGNAL(finished()), &loop, SLOT(quit()));
     loop.exec();
     codeContent = reply->readAll();
-    qDebug() << URLSTR;
+    qDebug() << surl;
     qDebug() << codeContent;
     parse_doucment = QJsonDocument::fromJson(codeContent.toLatin1(), &json_error);
-    if(json_error.error == QJsonParseError::NoError)
-    {
-        if(parse_doucment.isObject())
-        {
+    if(json_error.error == QJsonParseError::NoError) {
+        if(parse_doucment.isObject()) {
             QJsonObject obj = parse_doucment.object();
-            if(obj.contains("weatherinfo")){
+            if(obj.contains("weatherinfo")) {
                 QJsonObject::iterator it;
                 it = obj.find("weatherinfo");
                 QJsonObject weatherinfoObj = it.value().toObject();
                 sw1 = weatherinfoObj.value("weather1").toString();
                 QImage image;
-                URLSTR="images/"+ QString::number(weatherinfoObj.value("img1").toInt()) + ".png";
-                image.load(URLSTR);
+                surl = "images/" + QString::number(weatherinfoObj.value("img1").toInt()) + ".png";
+                image.load(surl);
                 systray->setIcon(QIcon(QPixmap::fromImage(image)));
 
                 QDateTime date = QDateTime::fromString(weatherinfoObj.value("date_y").toString(), "yyyy年M月d");                
-                for(int i=1;i<8;i++){
+                for(int i=1; i<8; i++) {
                     labelDate[i-1]->setText(date.addDays(i-1).toString("M-d")+"\n"+date.addDays(i-1).toString("dddd"));
                     labelDate[i-1]->setAlignment(Qt::AlignCenter);
-                    URLSTR="images/"+ QString::number(weatherinfoObj.value("img"+QString::number(2*i-1)).toInt()) + ".png";
-                    image.load(URLSTR);
+                    surl = "images/" + QString::number(weatherinfoObj.value("img"+QString::number(2*i-1)).toInt()) + ".png";
+                    image.load(surl);
                     labelWImg[i-1]->setPixmap(QPixmap::fromImage(image.scaled(50,50)));
                     labelWImg[i-1]->setAlignment(Qt::AlignCenter);
 
@@ -145,13 +138,13 @@ void getWeather(){
         }
     }
 
-    URLSTR="http://hao.weidunewtab.com/myapp/weather/data/indexInTime.php?cityID="+cityId;
-    url.setUrl(URLSTR);
+    surl = "http://hao.weidunewtab.com/myapp/weather/data/indexInTime.php?cityID=" + cityId;
+    url.setUrl(surl);
     reply = manager.get(QNetworkRequest(url));
     QObject::connect(reply, SIGNAL(finished()), &loop, SLOT(quit()));
     loop.exec();
     codeContent = reply->readAll();
-    qDebug() << URLSTR;
+    qDebug() << surl;
     qDebug() << codeContent;
     parse_doucment = QJsonDocument::fromJson(codeContent.toLatin1(), &json_error);
     if(json_error.error == QJsonParseError::NoError)
@@ -163,10 +156,10 @@ void getWeather(){
                 QJsonObject::iterator it;
                 it = obj.find("weatherinfo");
                 QJsonObject weatherinfoObj = it.value().toObject();
-                swn = weatherinfoObj.value("city").toString()+"\n"+sw1+"\n"+weatherinfoObj.value("temp").toString()+"°C\n湿度："+weatherinfoObj.value("SD").toString()+"\n"+weatherinfoObj.value("WD").toString()+weatherinfoObj.value("WS").toString()+"\nPM2.5："+weatherinfoObj.value("pm25").toString()+"\n空气质量指数："+ QString::number(weatherinfoObj.value("aqiLevel").toInt())+"\n刷新："+currentDateTime.toString("HH:mm:ss");
+                swn = weatherinfoObj.value("city").toString() + "\n" + sw1 + "\n"+weatherinfoObj.value("temp").toString() + "°C\n湿度：" + weatherinfoObj.value("SD").toString() + "\n" + weatherinfoObj.value("WD").toString() + weatherinfoObj.value("WS").toString() + "\nPM2.5：" + weatherinfoObj.value("pm25").toString() + "\n空气质量指数：" + QString::number(weatherinfoObj.value("aqiLevel").toInt()) + "\n刷新：" + currentDateTime.toString("HH:mm:ss");
                 qDebug() << swn;
                 systray->setToolTip(swn);
-                labelTemp->setText(weatherinfoObj.value("temp").toString()+"°C");
+                labelTemp->setText(weatherinfoObj.value("temp").toString() + "°C");
                 labelSD->setText("湿度\n" + weatherinfoObj.value("SD").toString());
                 labelWind->setText(weatherinfoObj.value("WD").toString() + "\n" + weatherinfoObj.value("WS").toString());
                 labelPM->setText("PM2.5\n" + weatherinfoObj.value("pm25").toString());
@@ -182,7 +175,7 @@ int main(int argc, char *argv[])
     QApplication app(argc, argv);
     //关闭最后一个窗口不退出程序
     QApplication::setQuitOnLastWindowClosed(false);
-    window=new MainWindow;
+    window = new MainWindow;
     window->setWindowTitle("中国天气预报");
     window->setFixedSize(500,220);
     //窗体颜色
@@ -231,7 +224,7 @@ int main(int argc, char *argv[])
     labelRT = new QLabel("刷新\n?");
     labelRT->setAlignment(Qt::AlignCenter);
     layout->addWidget(labelRT,0,6);
-    for(int i=1;i<8;i++){
+    for(int i=1; i<8; i++){
         labelDate[i-1] = new QLabel("1月1日\n星期一");
         labelDate[i-1]->setAlignment(Qt::AlignCenter);
         layout->addWidget(labelDate[i-1],1,i-1);
@@ -252,17 +245,17 @@ int main(int argc, char *argv[])
     systray->setToolTip("托盘天气");
     systray->setIcon(QIcon(":/icon.ico"));
     systray->setVisible(true);
-    QMenu *traymenu=new QMenu();
-    action_forecast=new QAction("预报",traymenu);
+    QMenu *traymenu = new QMenu();
+    action_forecast = new QAction("预报",traymenu);
     QStyle* style = QApplication::style();
     QIcon icon = style->standardIcon(QStyle::SP_ComputerIcon);
     action_forecast->setIcon(icon);
-    action_refresh=new QAction("刷新",traymenu);
+    action_refresh = new QAction("刷新",traymenu);
     icon = style->standardIcon(QStyle::SP_DriveNetIcon);
     action_refresh->setIcon(icon);
-    action_background=new QAction("背景透明",traymenu);
+    action_background = new QAction("背景透明",traymenu);
     action_background->setCheckable(true);
-    action_about=new QAction("关于",traymenu);
+    action_about = new QAction("关于",traymenu);
     icon = style->standardIcon(QStyle::SP_MessageBoxInformation);
     action_about->setIcon(icon);
     action_quit=new QAction("退出",traymenu);
@@ -282,7 +275,7 @@ int main(int argc, char *argv[])
     QObject::connect(action_about, &QAction::triggered, &windowAbout);
     QObject::connect(action_quit, SIGNAL(triggered()), &app, SLOT(quit()));
 
-    QTimer *timer=new QTimer();
+    QTimer *timer = new QTimer();
     timer->setInterval(1800000);
     //timer->setInterval(60000);
     timer->start();
