@@ -17,9 +17,9 @@
 #include <QPalette>
 #include <QDebug>
 
-QString city="",cityId="",swn="",sw1="";
-QAction *action_forecast,*action_refresh,*action_background,*action_about,*action_quit;
-QLabel *labelTemp,*labelCity,*labelSD,*labelWind,*labelPM,*labelAQI,*labelRT,*labelDate[7],*labelWImg[7],*labelWeather[7];
+QString city="", cityId="", swn="", sw1="";
+QAction *action_forecast, *action_refresh, *action_background, *action_about, *action_quit;
+QLabel *labelTemp, *labelCity, *labelSD, *labelWind, *labelPM, *labelAQI, *labelRT, *labelDate[7], *labelWImg[7], *labelWeather[7];
 QGridLayout *layout;
 QSystemTrayIcon *systray;
 MainWindow *window;
@@ -39,7 +39,7 @@ void windowForecast(){
 
 void windowAbout(){
     QMessageBox aboutMB(QMessageBox::NoIcon, "关于", "中国天气预报 2.2\n一款基于Qt的天气预报程序。\n作者：黄颖\nE-mail: sonichy@163.com\n主页：sonichy.96.lt\n致谢：\nsina.com\nweidu.com\nlinux028@deepin.org\n\n参考：\n获取网页源码写入文件: http://blog.csdn.net/small_qch/article/details/7200271\nJOSN解析: http://blog.sina.com.cn/s/blog_a6fb6cc90101gnxm.html\n\n2.2 (2017-01-23)\n1.使用本地图标代替边缘有白色的网络图标，可用于暗色背景了！\n\n2.1 (2016-12-09)\n1.窗体始终居中。\n\n2.0 (2016-11-21)\n1.使用QScript库代替QJsonDocument解析JSON，开发出兼容Qt4的版本。\n2.单击图标弹出实时天气消息，弥补某些系统不支持鼠标悬浮信息的不足。\n3.由于QScriptValueIterator.value().property解析不了某个JSON，使用QScriptValue.property.property代替。\n4.托盘右键增加一个刷新菜单。\n\n1.0 (2016-11-17)\n1.动态修改天气栏托盘图标，鼠标悬浮显示实时天气，点击菜单弹出窗口显示7天天气预报。\n2.每30分钟自动刷新一次。\n3.窗体透明。");
-    aboutMB.setIconPixmap(QPixmap(":/icon.ico"));
+    aboutMB.setIconPixmap(QPixmap(":/icon.png"));
     aboutMB.exec();
 }
 
@@ -109,10 +109,11 @@ void getWeather()
     qDebug() << surl;
     qDebug() << codeContent;
     parse_doucment = QJsonDocument::fromJson(codeContent.toLatin1(), &json_error);
-    if(json_error.error == QJsonParseError::NoError) {
-        if(parse_doucment.isObject()) {
+    //qDebug() << json_error;
+    if (json_error.error == QJsonParseError::NoError) {
+        if (parse_doucment.isObject()) {
             QJsonObject obj = parse_doucment.object();
-            if(obj.contains("weatherinfo")) {
+            if (obj.contains("weatherinfo")) {
                 QJsonObject::iterator it;
                 it = obj.find("weatherinfo");
                 QJsonObject weatherinfoObj = it.value().toObject();
@@ -124,14 +125,14 @@ void getWeather()
 
                 QDateTime date = QDateTime::fromString(weatherinfoObj.value("date_y").toString(), "yyyy年M月d");                
                 for(int i=1; i<8; i++) {
-                    labelDate[i-1]->setText(date.addDays(i-1).toString("M-d")+"\n"+date.addDays(i-1).toString("dddd"));
+                    labelDate[i-1]->setText(date.addDays(i-1).toString("M-d") + "\n" + date.addDays(i-1).toString("dddd"));
                     labelDate[i-1]->setAlignment(Qt::AlignCenter);
                     surl = "images/" + QString::number(weatherinfoObj.value("img"+QString::number(2*i-1)).toInt()) + ".png";
                     image.load(surl);
                     labelWImg[i-1]->setPixmap(QPixmap::fromImage(image.scaled(50,50)));
                     labelWImg[i-1]->setAlignment(Qt::AlignCenter);
 
-                    labelWeather[i-1]->setText(weatherinfoObj.value("weather"+QString::number(i)).toString()+"\n"+weatherinfoObj.value("temp"+QString::number(i)).toString()+"\n"+weatherinfoObj.value("wind"+QString::number(i)).toString());
+                    labelWeather[i-1]->setText(weatherinfoObj.value("weather" + QString::number(i)).toString() + "\n" + weatherinfoObj.value("temp"+QString::number(i)).toString() + "\n" + weatherinfoObj.value("wind"+QString::number(i)).toString());
                     labelWeather[i-1]->setAlignment(Qt::AlignCenter);
                 }
             }
@@ -229,9 +230,7 @@ int main(int argc, char *argv[])
         labelDate[i-1]->setAlignment(Qt::AlignCenter);
         layout->addWidget(labelDate[i-1],1,i-1);
         labelWImg[i-1] = new QLabel("");
-        QPixmap pixmap;
-        pixmap.load(":/icon.ico");
-        labelWImg[i-1]->setPixmap(pixmap);
+        labelWImg[i-1]->setPixmap(QPixmap::fromImage(QImage(":/icon.png").scaled(50,50)));
         labelWImg[i-1]->setAlignment(Qt::AlignCenter);
         layout->addWidget(labelWImg[i-1],2,i-1);
         labelWeather[i-1] = new QLabel("晴\n15°C ~ 20°C\n北风1级");
@@ -241,9 +240,9 @@ int main(int argc, char *argv[])
 	widget->setLayout(layout);
     
     //托盘菜单
-    systray=new QSystemTrayIcon();
+    systray = new QSystemTrayIcon();
     systray->setToolTip("托盘天气");
-    systray->setIcon(QIcon(":/icon.ico"));
+    systray->setIcon(QIcon(":/icon.png"));
     systray->setVisible(true);
     QMenu *traymenu = new QMenu();
     action_forecast = new QAction("预报",traymenu);
