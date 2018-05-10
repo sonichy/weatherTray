@@ -1,9 +1,3 @@
-#-------------------------------------------------
-#
-# Project created by QtCreator 2016-11-07T15:56:30
-#
-#-------------------------------------------------
-
 QT       += core gui network
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
@@ -17,5 +11,4 @@ SOURCES += main.cpp\
 
 HEADERS  += mainwindow.h
 
-RESOURCES += \
-    filename.qrc
+RESOURCES += filename.qrc
