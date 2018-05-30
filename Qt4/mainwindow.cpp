@@ -162,7 +162,8 @@ void MainWindow::iconIsActived(QSystemTrayIcon::ActivationReason reason)
     }
 }
 
-void MainWindow::getWeather(){
+void MainWindow::getWeather()
+{
     QDateTime currentDateTime = QDateTime::currentDateTime();
     qDebug() << "getWeather()" << currentDateTime;
     QString URLSTR = "http://int.dpool.sina.com.cn/iplookup/iplookup.php?format=json";

@@ -23,7 +23,7 @@ QLabel *labelTemp, *labelCity, *labelSD, *labelWind, *labelPM, *labelAQI, *label
 QGridLayout *layout;
 QSystemTrayIcon *systray;
 MainWindow *window;
-QDesktopWidget* desktop;
+QDesktopWidget *desktop;
 
 void windowForecast(){
     window->move((desktop->width() - window->width())/2, (desktop->height() - window->height())/2);
@@ -56,8 +56,10 @@ void iconIsActived(QSystemTrayIcon::ActivationReason reason)
 
 void getWeather()
 {
-    QDateTime currentDateTime = QDateTime::currentDateTime();
+    QDateTime currentDateTime = QDateTime::currentDateTime();    
     qDebug() << "getWeather()" << currentDateTime;
+    QString log = currentDateTime.toString("yyyy/MM/dd HH:mm:ss") + "\n";
+
     QString surl = "http://int.dpool.sina.com.cn/iplookup/iplookup.php?format=json";
     QUrl url(surl);
     QNetworkAccessManager manager;
@@ -68,11 +70,13 @@ void getWeather()
     QObject::connect(reply, SIGNAL(finished()), &loop, SLOT(quit()));
     //开启子事件循环
     loop.exec();
-    QString codeContent = reply->readAll();
+    QByteArray BA = reply->readAll();
     qDebug() << surl ;
-    qDebug() << codeContent;
+    qDebug() << BA;
+    log += surl + "\n";
+    log += BA + "\n";
     QJsonParseError json_error;
-    QJsonDocument parse_doucment = QJsonDocument::fromJson(codeContent.toLatin1(), &json_error);
+    QJsonDocument parse_doucment = QJsonDocument::fromJson(BA, &json_error);
     if(json_error.error == QJsonParseError::NoError) {
         if(parse_doucment.isObject()) {
             QJsonObject obj = parse_doucment.object();
@@ -93,6 +97,8 @@ void getWeather()
     cityID = reply->readAll();
     qDebug() << surl;
     qDebug() << cityID;
+    log += surl + "\n";
+    log += cityID + "\n";
     if (cityID == "") {
         labelComment->setText("错误：城市名返回城市ID为空");
     } else {
@@ -108,10 +114,12 @@ void getWeather()
     reply = manager.get(QNetworkRequest(url));
     QObject::connect(reply, SIGNAL(finished()), &loop, SLOT(quit()));
     loop.exec();
-    codeContent = reply->readAll();
+    BA = reply->readAll();
     qDebug() << surl;
-    qDebug() << codeContent;
-    parse_doucment = QJsonDocument::fromJson(codeContent.toLatin1(), &json_error);
+    qDebug() << BA;
+    log += surl + "\n";
+    log += BA + "\n";
+    parse_doucment = QJsonDocument::fromJson(BA, &json_error);
     qDebug() << "QJsonParseError:" << json_error.errorString();
     if (json_error.error == QJsonParseError::NoError) {
         if (parse_doucment.isObject()) {
@@ -152,14 +160,14 @@ void getWeather()
     reply = manager.get(QNetworkRequest(url));
     QObject::connect(reply, SIGNAL(finished()), &loop, SLOT(quit()));
     loop.exec();
-    codeContent = reply->readAll();
+    BA = reply->readAll();
     qDebug() << surl;
-    qDebug() << codeContent;
-    parse_doucment = QJsonDocument::fromJson(codeContent.toLatin1(), &json_error);
-    if (json_error.error == QJsonParseError::NoError)
-    {
-        if (parse_doucment.isObject())
-        {
+    qDebug() << BA;
+    log += surl + "\n";
+    log += BA + "\n";
+    parse_doucment = QJsonDocument::fromJson(BA, &json_error);
+    if (json_error.error == QJsonParseError::NoError) {
+        if (parse_doucment.isObject()) {
             QJsonObject obj = parse_doucment.object();
             if (obj.contains("weatherinfo")) {
                 QJsonObject::iterator it;
@@ -177,6 +185,16 @@ void getWeather()
             }
         }
     }
+
+    // 写log
+    QString path = QDir::currentPath() + "/weather.log";
+    qDebug() << path;
+    QFile file(path);
+    if (file.open(QFile::WriteOnly)) {
+        file.write(log.toUtf8());
+        file.close();
+    }
+
 }
 
 int main(int argc, char *argv[])
