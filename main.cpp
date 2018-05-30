@@ -32,7 +32,7 @@ void windowForecast(){
 }
 
 void windowAbout(){
-    QMessageBox aboutMB(QMessageBox::NoIcon, "关于", "中国天气预报 2.2\n一款基于Qt的天气预报程序。\n作者：黄颖\nE-mail: sonichy@163.com\n主页：sonichy.96.lt\n致谢：\nsina.com\nweidu.com\nlinux028@deepin.org\n\n参考：\n获取网页源码写入文件: http://blog.csdn.net/small_qch/article/details/7200271\nJOSN解析: http://blog.sina.com.cn/s/blog_a6fb6cc90101gnxm.html\n\n2.3 (2018-04-13)\n1.修复：日期数据不含月转换为日期引起的日期错误。\n\n2.2 (2017-01-23)\n1.使用本地图标代替边缘有白色的网络图标，可用于暗色背景了！\n\n2.1 (2016-12-09)\n1.窗体始终居中。\n\n2.0 (2016-11-21)\n1.使用QScript库代替QJsonDocument解析JSON，开发出兼容Qt4的版本。\n2.单击图标弹出实时天气消息，弥补某些系统不支持鼠标悬浮信息的不足。\n3.由于QScriptValueIterator.value().property解析不了某个JSON，使用QScriptValue.property.property代替。\n4.托盘右键增加一个刷新菜单。\n\n1.0 (2016-11-17)\n1.动态修改天气栏托盘图标，鼠标悬浮显示实时天气，点击菜单弹出窗口显示7天天气预报。\n2.每30分钟自动刷新一次。\n3.窗体透明。");
+    QMessageBox aboutMB(QMessageBox::NoIcon, "关于", "中国天气预报 2.4\n一款基于Qt的天气预报程序。\n作者：黄颖\nE-mail: sonichy@163.com\n主页：sonichy.96.lt\n致谢：\nsina.com\nweidu.com\nlinux028@deepin.org\n\n参考：\n获取网页源码写入文件: http://blog.csdn.net/small_qch/article/details/7200271\nJOSN解析: http://blog.sina.com.cn/s/blog_a6fb6cc90101gnxm.html\n\n2.4 (2018-05-30)\n1.增加写log文件，不需要调试也可以查看API的问题了。\n\n2.3 (2018-04-13)\n1.修复：日期数据不含月转换为日期引起的日期错误。\n\n2.2 (2017-01-23)\n1.使用本地图标代替边缘有白色的网络图标，可用于暗色背景了！\n\n2.1 (2016-12-09)\n1.窗体始终居中。\n\n2.0 (2016-11-21)\n1.使用QScript库代替QJsonDocument解析JSON，开发出兼容Qt4的版本。\n2.单击图标弹出实时天气消息，弥补某些系统不支持鼠标悬浮信息的不足。\n3.由于QScriptValueIterator.value().property解析不了某个JSON，使用QScriptValue.property.property代替。\n4.托盘右键增加一个刷新菜单。\n\n1.0 (2016-11-17)\n1.动态修改天气栏托盘图标，鼠标悬浮显示实时天气，点击菜单弹出窗口显示7天天气预报。\n2.每30分钟自动刷新一次。\n3.窗体透明。");
     aboutMB.setIconPixmap(QPixmap(":/icon.png"));
     aboutMB.exec();
 }
