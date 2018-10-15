@@ -3,4 +3,5 @@
 已编译好的 weatherTray 程序适用64位Linux系统。  
 ![alt](preview.png)
 天气API：https://www.sojson.com/blog/305.html  
-开机启动：把改好路径的 desktop 文件复制到 /home/administrator/.config/autostart 。
+生成 desktop 文件：install.sh  
+开机启动：把改好路径的 desktop 文件复制到 ~/.config/autostart 。
