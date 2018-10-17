@@ -218,15 +218,17 @@ void MainWindow::getWeather()
             for (int i=0; i<JA_forecast.size(); i++) {
                 labelDate[i]->setText(JA_forecast[i].toObject().value("date").toString());
                 labelDate[i]->setAlignment(Qt::AlignCenter);
-                QString icon_path = "images/" + JA_forecast[i].toObject().value("type").toString() + ".png";
+                QString wtype = JA_forecast[i].toObject().value("type").toString();
+                QString icon_path = "images/" + wtype + ".png";
                 if(i==0){
                     sw0 = JA_forecast[i].toObject().value("type").toString();
                     icon_path0 = icon_path;
                 }
-                QPixmap pixmap(icon_path);
+                QPixmap pixmap(icon_path);\
+                labelWImg[i]->setToolTip(wtype);
                 labelWImg[i]->setPixmap(pixmap.scaled(50,50));
                 labelWImg[i]->setAlignment(Qt::AlignCenter);
-                labelWeather[i]->setText(JA_forecast[i].toObject().value("type").toString() + "\n" + JA_forecast[i].toObject().value("high").toString() + "\n" + JA_forecast[i].toObject().value("low").toString() + "\n" + JA_forecast[i].toObject().value("fx").toString() + JA_forecast[i].toObject().value("fl").toString());
+                labelWeather[i]->setText(wtype + "\n" + JA_forecast[i].toObject().value("high").toString() + "\n" + JA_forecast[i].toObject().value("low").toString() + "\n" + JA_forecast[i].toObject().value("fx").toString() + JA_forecast[i].toObject().value("fl").toString());
                 labelWeather[i]->setAlignment(Qt::AlignCenter);
             }
             //}
